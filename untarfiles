@@ -1,21 +1,22 @@
 #!/bin/bash
 
-# This script will untar all the .tar files in the specified directory
+# This script will untar all the .tar files in the CMA directory
 
 # Change this to the directory containing your .tar files
-directory="/path/to/directory"
+directory="/path/to/CMA"
 
 # Change this to the name pattern of the .tar files
 name_pattern="*.tar"
 
-# Loop through all .tar files in the directory
-for file in "$directory/$name_pattern"; do
-    if [ -f "$file" ]; then
-        # Extract the .tar file
-        tar -xf "$file"
-        # Remove the .tar file after extraction
-        rm "$file"
-    fi
+# Use find to get a list of .tar files in the directory
+tar_files=$(find "$directory" -name "$name_pattern")
+
+# Loop through all .tar files in the list
+for file in $tar_files; do
+    # Extract the .tar file
+    tar -xf "$file" -C "$directory"
+    # Remove the .tar file after extraction
+    rm "$file"
 done
 
-echo "All .tar files have been untarred."
+echo "All .tar files in CMA directory have been untarred."
