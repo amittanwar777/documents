@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This script will untar all the .tar files in the specified directory
+
+# Change this to the directory containing your .tar files
+directory="/path/to/directory"
+
+# Change this to the name pattern of the .tar files
+name_pattern="*.tar"
+
+# Loop through all .tar files in the directory
+for file in "$directory/$name_pattern"; do
+    if [ -f "$file" ]; then
+        # Extract the .tar file
+        tar -xf "$file"
+        # Remove the .tar file after extraction
+        rm "$file"
+    fi
+done
+
+echo "All .tar files have been untarred."
