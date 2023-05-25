@@ -3,3 +3,17 @@ while IFS='=' read -r var value; do
         [ "${!var}" = "$value" ] && echo "$var matches" || echo "$var does not match"
     fi
 done < A.txt
+
+
+
+
+while IFS='=' read -r var value; do
+    if [ -n "$var" ] && [ -n "$value" ]; then
+        if [ "${!var}" != "$value" ]; then
+            echo "$var does not match"
+            exit 1
+        else
+            echo "$var matches"
+        fi
+    fi
+done < A.txt
