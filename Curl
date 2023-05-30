@@ -1,0 +1,10 @@
+response=$(curl -kv -X POST "https://url?Notes=$notes" 2>&1)
+if [[ $response == *"HTTP/1.1 200 OK"* ]]; then
+    echo "Request was successful."
+    echo "Response:"
+    echo "$response"
+else
+    echo "Request failed."
+    echo "Response:"
+    echo "$response"
+fi
