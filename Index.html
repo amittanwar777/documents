@@ -1,0 +1,13 @@
+echo "<html>
+<head>
+<title>Index</title>
+</head>
+<body>
+<table>" > index.html
+
+awk 'BEGIN { FS=","; print "<tr><th>Name</th><th>Surname</th></tr>" } 
+     NR>1 { print "<tr><td>" $1 "</td><td>" $2 "</td></tr>" }' File.txt >> index.html
+
+echo "</table>
+</body>
+</html>" >> index.html
