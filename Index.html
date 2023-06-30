@@ -1,11 +1,22 @@
+
 echo "<html>
 <head>
 <title>Index</title>
+<style>
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 8px;
+}
+</style>
 </head>
 <body>
 <table>" > index.html
 
-awk 'BEGIN { FS=","; print "<tr><th>Name</th><th>Surname</th></tr>" } 
+awk 'BEGIN { FS="|" ; print "<tr><th>Name</th><th>Surname</th></tr>" } 
      NR>1 { print "<tr><td>" $1 "</td><td>" $2 "</td></tr>" }' File.txt >> index.html
 
 echo "</table>
