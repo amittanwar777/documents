@@ -15,6 +15,10 @@ th {
   background-color: #f2f2f2;
 }
 
+td {
+  text-align: center;
+}
+
 td:nth-child(even) {
   background-color: #f9f9f9;
 }
@@ -22,13 +26,26 @@ td:nth-child(even) {
 td:nth-child(odd) {
   background-color: #e6e6e6;
 }
+
+.mark-red {
+  background-color: #ffcccc;
+}
+
+.mark-green {
+  background-color: #ccffcc;
+}
 </style>
 </head>
 <body>
 <table>" > index.html
 
-awk 'BEGIN { FS="|" ; print "<tr><th>Name</th><th>Surname</th></tr>" } 
-     NR>1 { print "<tr><td>" $1 "</td><td>" $2 "</td></tr>" }' File.txt >> index.html
+awk 'BEGIN { FS="|" ; print "<tr><th>Name</th><th>Marks</th></tr>" } 
+     NR>1 { 
+       if ($2 == 0)
+         print "<tr><td>" $1 "</td><td class=\"mark-red\">" $2 "</td></tr>"
+       else
+         print "<tr><td>" $1 "</td><td class=\"mark-green\">" $2 "</td></tr>"
+     }' File.txt >> index.html
 
 echo "</table>
 </body>
