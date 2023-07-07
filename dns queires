@@ -1,0 +1,12 @@
+#!/bin/bash
+
+while read -r line; do
+  if [[ $line != "#"* ]]; then
+    if [[ $line == *"DNS"* ]]; then
+      entry=$(echo "$line" | awk -F':' '{print $2}')
+    else
+      entry=$(echo "$line" | awk -F':' '{print $2":"$3}' | sed 's/\/32//')
+    fi
+    nc -vz $entry
+  fi
+done < file.txt
