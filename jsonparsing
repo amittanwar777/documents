@@ -4,7 +4,8 @@
 JSON=$(cat A.json)
 
 # Parse JSON using 'jq' command and write to a temporary file
-echo "$JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > temp.txt
+#echo "$JSON" | jq -r 'to_entries | .[] | if .value | type == "array" then "\(.key)=[" + (.value | join(",")) + "]" else "\(.key)=\(.value)" end' > temp.txt
+echo "$JSON" | jq -r 'to_entries | .[] | if .value | type == "array" then "\(.key)=\(.value | join(","))" else "\(.key)=\(.value)" end' > temp.txt
 
 # Read the temporary file and export as environment variables
 while IFS='=' read -r key value; do
@@ -14,4 +15,4 @@ done < temp.txt
 # Remove the temporary file
 rm temp.txt
 
-# For validation, you can print the environment variables
+# For validation, you can print the environ
