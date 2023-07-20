@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Load JSON file
+JSON=$(cat A.json)
+
+# Parse JSON using 'jq' command (ensure jq is installed: sudo apt install jq)
+declare -A data
+while IFS="=" read -r key value; do
+  data["$key"]="$value"
+done < <(echo "$JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"')
+
+# Export all data as environment variables
+for key in "${!data[@]}"; do
+  export "$key"="${data[$key]}"
+done
+
+# For validation, you can print the environment variables
+env
