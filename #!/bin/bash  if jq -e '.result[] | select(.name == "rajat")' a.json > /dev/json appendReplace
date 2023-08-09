@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if jq -e '.result[] | select(.name == "rajat")' a.json > /dev/null; then
+    jq --argfile replacement b.json '(.result[] | select(.name == "rajat")) = $replacement' a.json > updated_a.json
+else
+    jq --argfile newData b.json '.result += [$newData]' a.json > updated_a.json
+fi
+
+
+
+cat updated_a.json
