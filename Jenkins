@@ -1,0 +1,17 @@
+def choices = []
+
+switch (params.A) {
+    case 'Ram':
+        choices = ['Ram Value 1', 'Ram Value 2', 'Ram Value 3']
+        break
+    case 'Shyam':
+        choices = ['Shyam Value 1', 'Shyam Value 2', 'Shyam Value 3']
+        break
+    case 'Karan':
+        choices = ['Karan Value 1', 'Karan Value 2', 'Karan Value 3']
+        break
+    default:
+        choices = []
+}
+
+return choices
