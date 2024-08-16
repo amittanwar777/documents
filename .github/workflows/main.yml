@@ -26,7 +26,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add output.txt  # Replace 'output.txt' with your actual file name if different
+          git add output.pdf  # Replace 'output.pdf' with your actual file name if different
           git commit -m "Update generated file"
           git push
         env:
