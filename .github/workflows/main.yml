@@ -3,7 +3,7 @@ name: Generate File Workflow
 on:
   push:
     branches:
-      - main
+      - gitworkflowtest
 
 jobs:
   build:
