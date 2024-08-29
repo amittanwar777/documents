@@ -1,0 +1,37 @@
+{
+  "trigger": {
+    "schedule": {
+      "interval": "1m"  // Runs every minute
+    }
+  },
+  "input": {
+    "search": {
+      "request": {
+        "indices": [
+          "<your-index-name>"  // Replace with your actual index name
+        ],
+        "body": {
+          "query": {
+            "match": {
+              "message": "ERROR"  // Searches for the keyword "ERROR" in the "message" field
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition": {
+    "compare": {
+      "ctx.payload.hits.total": {
+        "gt": 0  // Triggers if at least one hit is found
+      }
+    }
+  },
+  "actions": {
+    "log_error": {
+      "logging": {
+        "text": "Found an ERROR log entry: {{ctx.payload.hits.hits.0._source.message}}"
+      }
+    }
+  }
+}
