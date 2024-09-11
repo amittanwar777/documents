@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Single function to ask for new value and replace it in the file
+update_db_host() {
+    # Ask if the user wants to update the GT_DB_HOST
+    echo "Do you want to update GT_DB_HOST? (y/n):"
+    read update_choice
+
+    # If the user chooses 'y', proceed with updating
+    if [[ "$update_choice" == "y" || "$update_choice" == "Y" ]]; then
+        # Prompt the user for the new GT_DB_HOST value
+        echo "Please enter the new value for GT_DB_HOST:"
+        read new_db_host
+
+        # Specify the file to be updated
+        file="your_file_name_here.txt"
+
+        # Check if the file exists
+        if [ -f "$file" ]; then
+            # Replace the old GT_DB_HOST value with the new one
+            sed -i "s/^GT_DB_HOST=.*/GT_DB_HOST=$new_db_host/" "$file"
+            echo "The GT_DB_HOST value has been updated in $file."
+        else
+            echo "File $file does not exist."
+        fi
+    else
+        echo "GT_DB_HOST update skipped."
+    fi
+}
+
+# Call the function
+update_db_host
