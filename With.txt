@@ -1,1 +1,19 @@
+Got it! Here’s the revised version with "I" instead of "your":
+
+
+---
+
+Values and Leadership Behavior:
+
+I consistently demonstrate a commitment to efficiency, collaboration, and innovation in my work. In the Digital Shared Services projects, I focus on streamlining processes through automation, ensuring high availability, and simplifying deployment for clients. My leadership in designing security principles and implementing clear processes reflects a proactive approach to problem-solving.
+
+In Private Banking, I take the lead by providing real-time insights with AppDynamics, enhancing infrastructure stability through the upgrade from RHEL 7 to 8, and simplifying the deployment process for Wecco. By supporting my team with knowledge transfer on Grok filters, Filebeat, and creating centralized documentation, I foster a culture of shared knowledge and continuous improvement.
+
+Additionally, my work on implementing security principles and simplifying workflows across both departments underscores my focus on reliability, consistency, and client satisfaction. I drive innovation while ensuring the needs of the team and clients are at the forefront, always seeking to enhance collaboration and system performance.
+
+
+---
+
+Let me know if this works!
+
 
