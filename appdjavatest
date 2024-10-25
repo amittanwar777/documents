@@ -1,0 +1,17 @@
+public class AppDTestApp {
+    public static void main(String[] args) {
+        System.out.println("Starting AppDynamics test application...");
+
+        // Simulate some work
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("Calculation: " + (i * i));
+            try {
+                Thread.sleep(500); // Sleep to keep the app running and generate metrics
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("AppDynamics test application finished.");
+    }
+}
