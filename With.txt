@@ -39,3 +39,7 @@ Strengthened Security and Compliance: The introduction of security groups and ma
 Team Enablement through KT and Handover: Amit’s detailed KT sessions empowered the team with the necessary knowledge and tools, ensuring long-term operational sustainability.
 Final Remarks
 Amit Tanwar’s comprehensive contributions in this AWS migration project, from technical implementations to team enablement and security enhancements, have been pivotal to its success. His work reflects exceptional expertise, strategic thinking, and dedication to maintaining efficient, secure, and sustainable operations. His contributions have set a high standard and provided a robust foundation for future cloud migration projects.
+
+
+
+Amit Tanwar’s efforts in the AWS migration project were recognized by Director Meghan Kochrecakar, underscoring the significant impact of his contributions on the project’s success. His expertise, strategic problem-solving, and commitment to team enablement and operational excellence have set a high standard within the organization and provided a lasting foundation for future initiatives.
