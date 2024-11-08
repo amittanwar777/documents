@@ -1,22 +1,18 @@
 #!/bin/bash
 
-# This script will untar all the .tar files in the CMA directory
+# Array of files to apply
+files=("fileA.yaml" "fileB.yaml" "fileC.yaml")
 
-# Change this to the directory containing your .tar files
-directory="/path/to/CMA"
+# Loop through each file and apply it
+for file in "${files[@]}"; do
+  echo "Applying $file..."
+  oc apply -f "$file"
 
-# Change this to the name pattern of the .tar files
-name_pattern="*.tar"
-
-# Use find to get a list of .tar files in the directory
-tar_files=$(find "$directory" -name "$name_pattern")
-
-# Loop through all .tar files in the list
-for file in $tar_files; do
-    # Extract the .tar file
-    tar -xf "$file" -C "$directory"
-    # Remove the .tar file after extraction
-    rm "$file"
+  # Check if the apply command was successful
+  if [ $? -eq 0 ]; then
+    echo "$file applied successfully."
+  else
+    echo "Failed to apply $file."
+    exit 1
+  fi
 done
-
-echo "All .tar files in CMA directory have been untarred."
