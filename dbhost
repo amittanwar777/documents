@@ -1,32 +1,82 @@
-#!/bin/bash
+h1. Jenkins Pipeline Documentation: Deploying Nginx on OpenShift v4
 
-# Single function to ask for new value and replace it in the file
-update_db_host() {
-    # Ask if the user wants to update the GT_DB_HOST
-    echo "Do you want to update GT_DB_HOST? (y/n):"
-    read update_choice
+h2. Introduction
+This document provides a detailed guide to set up and execute a Jenkins pipeline for deploying Nginx on OpenShift v4. This includes the necessary configurations, pipeline stages, and verification steps.
 
-    # If the user chooses 'y', proceed with updating
-    if [[ "$update_choice" == "y" || "$update_choice" == "Y" ]]; then
-        # Prompt the user for the new GT_DB_HOST value
-        echo "Please enter the new value for GT_DB_HOST:"
-        read new_db_host
+h2. Prerequisites
+* Jenkins server with the following plugins installed:
+  * [Pipeline Plugin|https://plugins.jenkins.io/workflow-aggregator/]
+  * [OpenShift Client Plugin|https://plugins.jenkins.io/openshift-client/]
+* Access to OpenShift v4 with necessary permissions for deploying resources.
+* Nginx deployment YAML files (or reference to the location of these files in your repository).
 
-        # Specify the file to be updated
-        file="your_file_name_here.txt"
+h2. Pipeline Overview
+This Jenkins pipeline automates the deployment of Nginx on OpenShift v4. The main stages are:
+* *Build Stage*: Sets up Nginx image or necessary dependencies.
+* *Deploy Stage*: Deploys Nginx to the specified OpenShift project.
+* *Verification*: Confirms successful deployment.
 
-        # Check if the file exists
-        if [ -f "$file" ]; then
-            # Replace the old GT_DB_HOST value with the new one
-            sed -i "s/^GT_DB_HOST=.*/GT_DB_HOST=$new_db_host/" "$file"
-            echo "The GT_DB_HOST value has been updated in $file."
-        else
-            echo "File $file does not exist."
-        fi
-    else
-        echo "GT_DB_HOST update skipped."
-    fi
+h2. Step-by-Step Guide
+
+h3. Stage 1: Jenkins Job Setup
+# Open Jenkins and create a new pipeline job for Nginx deployment.
+# Configure the pipeline with the following parameters:
+  * *Pipeline script*: Configure the pipeline script to include stages for building and deploying to OpenShift.
+  
+{note}
+Insert screenshots of the Jenkins job configuration here.
+{note}
+
+h3. Stage 2: Pipeline Script
+Below is the Jenkins pipeline script used for deploying Nginx. Adjust the OpenShift project name, Nginx image details, and other variables as needed.
+
+{code:language=groovy|title=Jenkins Pipeline Script}
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building Nginx...'
+                // Add any build steps here
+            }
+        }
+        stage('Deploy to OpenShift') {
+            steps {
+                script {
+                    // Example OpenShift CLI command
+                    sh 'oc apply -f nginx-deployment.yaml -n <YOUR_PROJECT>'
+                }
+            }
+        }
+    }
 }
+{code}
 
-# Call the function
-update_db_host
+h3. Stage 3: OpenShift Deployment
+Once the pipeline script is configured, initiate the pipeline run. This will trigger the stages defined above, leading to an Nginx deployment on OpenShift.
+
+{note}
+Insert screenshots of the pipeline execution here, showing successful completion of each stage.
+{note}
+
+h2. Verifying Deployment
+To confirm that Nginx is deployed:
+# Access the OpenShift console and navigate to the project.
+# Verify the pod status by checking the *Pods* section.
+# Alternatively, run the following command to view pod status:
+{code:language=bash|title=Check Pod Status}
+oc get pods -n <YOUR_PROJECT>
+{code}
+
+{note}
+Insert screenshots of OpenShift console or command-line output to show successful deployment.
+{note}
+
+h2. Common Issues & Troubleshooting
+* *Issue*: Pipeline fails at the deployment stage.
+  * *Solution*: Verify OpenShift permissions and that the Nginx YAML file is accessible.
+* *Issue*: Nginx service is not accessible post-deployment.
+  * *Solution*: Check the route configuration in OpenShift and confirm the service is exposed.
+
+h2. Conclusion
+This pipeline enables seamless deployment of Nginx on OpenShift v4 using Jenkins, streamlining the process and ensuring consistent deployments.
