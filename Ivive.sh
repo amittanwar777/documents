@@ -1,10 +1,15 @@
-if [ $A -eq 0 ] || [ $B -eq 0 ]; then
-    order="$B $A"
-else
-    order="$A $B"
-fi
+#!/bin/bash
 
-# Displaying the value of 'order' using a for loop
-for value in $order; do
-    echo "$value"
-done
+# Path to your deployment file
+DEPLOYMENT_FILE="deployment.yaml"
+
+# Apply the deployment file and capture the output
+OUTPUT=$(oc apply -f "$DEPLOYMENT_FILE")
+
+# Check if the output contains "unchanged"
+if echo "$OUTPUT" | grep -q "unchanged"; then
+  echo "No changes detected, triggering a rollout..."
+  oc rollout restart deployment/nginx
+else
+  echo "Changes applied or configured, no rollout needed."
+fi
