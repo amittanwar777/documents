@@ -1,45 +1,11 @@
-Overview
-In the strategic migration of Digital Shared Services (DSS) from the legacy OpenShift v3 platform to AWS, Amit Tanwar played an instrumental role in achieving a 100% migration completion rate. This successful transition strengthened our infrastructure, ensuring continuity for all DSS features in both production and non-production environments and enhancing operational efficiency, scalability, and cost-effectiveness.
+#!/bin/bash
 
-Key Contributions and Outcomes
+# Usage: ./check_url.sh <URL>
+URL=$1
 
-End-to-End AWS Deployment Pipeline Creation
-Amit Tanwar developed a robust end-to-end Jenkins pipeline for AWS deployments, allowing for streamlined single-job deployment across all 55 DSS features and slot copies. This automation reduced deployment time, minimized manual errors, and simplified management for RTB teams, making it easier and faster to implement updates, including IFE patches and other essential upgrades.
-
-Cost Optimization Strategy Implementation
-Amit optimized AWS resource usage by implementing strategies to control costs associated with EC2 instances and Redis clusters. Specifically, he introduced a start/stop strategy for lower environments, saving costs for both ROLB and DSS without compromising system functionality.
-
-Enhanced Log Management and ELK Onboarding
-Amit led the onboarding of DSS accounts to ELK Kibana and created custom Grok filters to improve log data organization and accessibility. These filters allowed better visibility into log data, enabling more efficient monitoring and troubleshooting while enhancing overall system insights.
-
-Application Monitoring Integration with AppDynamics
-Amit onboarded and integrated AppDynamics into the AWS deployment pipeline, providing continuous monitoring across environments. This addition ensured that performance insights were readily available, allowing for proactive management and resolution of potential performance issues.
-
-Multi-Channel Configuration across AWS Accounts
-Amit played a vital role in configuring four channels across two AWS accounts with various Akamai configurations, optimizing resource use by reducing the need for additional AWS accounts. This streamlined approach enabled consistent performance, cost savings, and simplified processes for Barclays.
-
-Tomcat and NGINX Configuration Management
-Amit managed and optimized Tomcat and NGINX configurations for DSS applications on AWS, ensuring alignment with architectural standards and fulfilling the specific needs of the DSS environment. This supported both stability and security in the migrated environment.
-
-Centralized DevOps Data through CloudOneStop
-Amit consolidated DevOps data into CloudOneStop, migrating it from OpenShift v3 to OpenShift v4, which now serves as the central source of configuration data. This consolidation provides RTB and other application teams with a reliable reference, simplifying deployment and management processes.
-
-Security and Change Control Implementation
-Amit strengthened security by setting up multiple security groups to protect the AWS infrastructure. Furthermore, he implemented a change control measure, ensuring that no job could be executed without an authorized Change Request. This practice bolstered compliance and minimized risks associated with unauthorized deployments.
-
-Knowledge Transfer and Handover
-To ensure a smooth transition and maintain operational continuity, Amit conducted comprehensive knowledge transfer (KT) sessions for team members on Kibana, Grok filters, the AWS pipeline, and general AWS processes. These KT sessions and handovers enabled his colleagues to manage and troubleshoot effectively post-migration, ensuring sustainable knowledge-sharing and operational efficiency.
-
-Impact and Significance of Contributions
-
-Increased Efficiency and Simplified Management: The Jenkins pipeline allowed rapid, error-free deployments, significantly enhancing efficiency and control.
-Cost-Effectiveness: Amit’s strategies for resource management led to substantial cost savings, directly benefiting our operational budget.
-Enhanced Monitoring and Troubleshooting: ELK Kibana onboarding and custom logging filters facilitated better system insights, reducing the time needed for issue identification and resolution.
-Strengthened Security and Compliance: The introduction of security groups and mandatory Change Requests ensured a risk-averse, compliant environment for DSS applications.
-Team Enablement through KT and Handover: Amit’s detailed KT sessions empowered the team with the necessary knowledge and tools, ensuring long-term operational sustainability.
-Final Remarks
-Amit Tanwar’s comprehensive contributions in this AWS migration project, from technical implementations to team enablement and security enhancements, have been pivotal to its success. His work reflects exceptional expertise, strategic thinking, and dedication to maintaining efficient, secure, and sustainable operations. His contributions have set a high standard and provided a robust foundation for future cloud migration projects.
-
-
-
-Amit Tanwar’s efforts in the AWS migration project were recognized by Director Meghan Kochrecakar, underscoring the significant impact of his contributions on the project’s success. His expertise, strategic problem-solving, and commitment to team enablement and operational excellence have set a high standard within the organization and provided a lasting foundation for future initiatives.
+# Check if URL is reachable
+if curl --output /dev/null --silent --head --fail "$URL"; then
+  echo "URL is reachable."
+else
+  echo "URL is not reachable."
+fi
