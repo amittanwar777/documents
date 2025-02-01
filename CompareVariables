@@ -1,19 +1,117 @@
-while IFS='=' read -r var value; do
-    if [ -n "$var" ] && [ -n "$value" ]; then
-        [ "${!var}" = "$value" ] && echo "$var matches" || echo "$var does not match"
-    fi
-done < A.txt
+#!/bin/bash
 
+CHART_NAME="nginx-chart"
 
+# Create the Helm chart
+helm create $CHART_NAME
+cd $CHART_NAME
 
+# Clean up default files
+rm -rf templates/*
 
-while IFS='=' read -r var value; do
-    if [ -n "$var" ] && [ -n "$value" ]; then
-        if [ "${!var}" != "$value" ]; then
-            echo "$var does not match"
-            exit 1
-        else
-            echo "$var matches"
-        fi
-    fi
-done < A.txt
+# Create `values.yaml`
+cat <<EOF > values.yaml
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+  pullSecret: my-registry-secret  # Change as needed
+
+service:
+  name: nginx-service
+  port: 80
+  targetPort: 80
+
+route:
+  enabled: true
+  host: "my-nginx.example.com"
+
+config:
+  path: "/etc/nginx/conf"
+  fileName: "run.sh"
+EOF
+
+# Create `Deployment.yaml`
+cat <<EOF > templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-nginx
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-nginx
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      containers:
+      - name: nginx
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+        volumeMounts:
+        - name: config-volume
+          mountPath: {{ .Values.config.path }}
+          subPath: {{ .Values.config.fileName }}
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-config
+EOF
+
+# Create `Service.yaml`
+cat <<EOF > templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+spec:
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+  selector:
+    app: {{ .Release.Name }}-nginx
+EOF
+
+# Create `Route.yaml`
+cat <<EOF > templates/route.yaml
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ .Release.Name }}-nginx
+spec:
+  host: {{ .Values.route.host }}
+  to:
+    kind: Service
+    name: {{ .Values.service.name }}
+  port:
+    targetPort: {{ .Values.service.targetPort }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+{{- end }}
+EOF
+
+# Create `ConfigMap.yaml` for mounting `run.sh`
+cat <<EOF > templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  {{ .Values.config.fileName }}: |
+    #!/bin/bash
+    echo "This is a sample script"
+EOF
+
+# Make the script executable
+chmod +x templates/configmap.yaml
+
+echo "Helm chart '$CHART_NAME' created successfully!"
