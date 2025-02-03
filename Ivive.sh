@@ -1,36 +1,24 @@
-#!/bin/bash
-
-# Output file
-OUTPUT_FILE="openshift_resources.txt"
-
-# Clear the output file
-> $OUTPUT_FILE
-
-# Get all namespaces
-NAMESPACES=$(oc get namespaces -o jsonpath='{.items[*].metadata.name}')
-
-# Loop through each namespace
-for NS in $NAMESPACES; do
-    echo "Namespace: $NS" >> $OUTPUT_FILE
-    echo "=============================" >> $OUTPUT_FILE
-
-    # Get Pods
-    echo "Pods:" >> $OUTPUT_FILE
-    oc get pods -n $NS >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-
-    # Get Deployments
-    echo "Deployments:" >> $OUTPUT_FILE
-    oc get deployments -n $NS >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-
-    # Get Routes
-    echo "Routes:" >> $OUTPUT_FILE
-    oc get routes -n $NS >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-
-    echo "=============================" >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-done
-
-echo "Output written to $OUTPUT_FILE"
+{
+  "environments": {
+    "ste": {
+      "outer-nginx": "ste-outer-nginx-namespace",
+      "inner-nginx": "ste-inner-nginx-namespace"
+    },
+    "sir": {
+      "outer-nginx": "sir-outer-nginx-namespace",
+      "inner-nginx": "sir-inner-nginx-namespace"
+    },
+    "dev": {
+      "outer-nginx": "dev-outer-nginx-namespace",
+      "inner-nginx": "dev-inner-nginx-namespace"
+    },
+    "prod": {
+      "outer-nginx": "prod-outer-nginx-namespace",
+      "inner-nginx": "prod-inner-nginx-namespace"
+    },
+    "uat": {
+      "outer-nginx": "uat-outer-nginx-namespace",
+      "inner-nginx": "uat-inner-nginx-namespace"
+    }
+  }
+}
