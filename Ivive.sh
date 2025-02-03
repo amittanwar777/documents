@@ -1,24 +1,18 @@
-{
-  "environments": {
-    "ste": {
-      "outer-nginx": "ste-outer-nginx-namespace",
-      "inner-nginx": "ste-inner-nginx-namespace"
-    },
-    "sir": {
-      "outer-nginx": "sir-outer-nginx-namespace",
-      "inner-nginx": "sir-inner-nginx-namespace"
-    },
-    "dev": {
-      "outer-nginx": "dev-outer-nginx-namespace",
-      "inner-nginx": "dev-inner-nginx-namespace"
-    },
-    "prod": {
-      "outer-nginx": "prod-outer-nginx-namespace",
-      "inner-nginx": "prod-inner-nginx-namespace"
-    },
-    "uat": {
-      "outer-nginx": "uat-outer-nginx-namespace",
-      "inner-nginx": "uat-inner-nginx-namespace"
-    }
-  }
-}
+#!/bin/bash
+
+# List of bounded contexts
+contexts=("fw" "fw-sl" "ca" "ca-sl" "ca-gl")
+
+# Loop through each context
+for context in "${contexts[@]}"; do
+    # Check if the context is "fw" or starts with "fw-"
+    if [[ "$context" == "fw" || "$context" == "fw-"* ]]; then
+        folder="valpre"
+    else
+        # Extract the part before the hyphen (if any)
+        folder="${context%%-*}"
+    fi
+
+    # Print the result (or perform other actions)
+    echo "Bounded Context: $context --> Folder Name: $folder"
+done
