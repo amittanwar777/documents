@@ -1,16 +1,51 @@
-response=$(curl -kv -X POST "https://url?Notes=$notes" -w "\n%{http_code}" 2>&1)
-http_code=$(echo "$response" | tail -n 1)
-message=$(echo "$response" | head -n -1)
+#!/bin/bash
 
-if [ "$http_code" -eq 200 ]; then
-    echo "Request was successful."
-elif [ "$http_code" -eq 400 ]; then
-    echo "Request failed with a 400 error."
-else
-    echo "Request failed with an unknown error."
-fi
+JSON_FILE="output.json"
+HTML_FILE="index.html"
 
-echo "Response message:"
-echo "$message"
+# Start HTML file
+cat <<EOF > "$HTML_FILE"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pods Overview</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h2>Pods Overview</h2>
+EOF
 
+# Iterate over environments
+jq -r 'keys[]' "$JSON_FILE" | while read -r env; do
+    echo "    <h3>Environment: $env</h3>" >> "$HTML_FILE"
+    echo "    <table>" >> "$HTML_FILE"
+    echo "        <tr><th>Namespace</th><th>Pod Name</th><th>Status</th></tr>" >> "$HTML_FILE"
 
+    # Iterate over namespaces
+    jq -c ".\"$env\".namespaces[]" "$JSON_FILE" | while read -r ns_entry; do
+        namespace=$(echo "$ns_entry" | jq -r '.namespace')
+        
+        # Iterate over pods
+        echo "$ns_entry" | jq -c '.pods[]' | while read -r pod; do
+            pod_name=$(echo "$pod" | jq -r '.name')
+            pod_status=$(echo "$pod" | jq -r '.status')
+
+            echo "        <tr><td>$namespace</td><td>$pod_name</td><td>$pod_status</td></tr>" >> "$HTML_FILE"
+        done
+    done
+
+    echo "    </table>" >> "$HTML_FILE"
+done
+
+# Close HTML
+cat <<EOF >> "$HTML_FILE"
+</body>
+</html>
+EOF
