@@ -12,7 +12,17 @@ OC_PASSWORD = sys.argv[2]
 
 JSON_FILE = "mapping.json"
 OUTPUT_FILE = "output.json"
-DATACENTERS = {"sl": ["ste"], "gl": ["cit"]}  # Mapping of DC to specific environments
+
+# Define environment mappings for datacenters
+DATACENTERS = {
+    "sl": [],
+    "gl": []
+}
+
+SPECIAL_MAPPINGS = {
+    "sl": ["ste"],  # ste runs only on sl
+    "gl": ["cit"]   # cit runs only on gl
+}
 
 output_data = {}
 
@@ -20,11 +30,16 @@ output_data = {}
 with open(JSON_FILE, "r") as f:
     data = json.load(f)
 
+# Identify general environments that run on both sl & gl
+all_envs = set(data["environments"].keys())
+for dc, special_envs in SPECIAL_MAPPINGS.items():
+    DATACENTERS[dc] = special_envs + list(all_envs - set(special_envs))
+
 for dc, env_list in DATACENTERS.items():
     print(f"Logging into datacenter: {dc}")
     subprocess.run(["oc", "login", f"--server=https://{dc}.com:6443", "-u", OC_USER, f"-p{OC_PASSWORD}"], check=True)
 
-    for env in env_list:  # Process only specific environments for each DC
+    for env in env_list:
         if env not in data["environments"]:
             continue  # Skip if environment is not present in JSON
 
@@ -34,7 +49,10 @@ for dc, env_list in DATACENTERS.items():
         for ns_key, ns_value in data["environments"][env].items():
             print(f"Fetching pods for Namespace: {ns_value} in {env_key}")
 
-            result = subprocess.run(["oc", "get", "pods", "-n", ns_value, "--field-selector=status.phase=Running", "-o", "json"], capture_output=True, text=True)
+            result = subprocess.run(
+                ["oc", "get", "pods", "-n", ns_value, "--field-selector=status.phase=Running", "-o", "json"],
+                stdout=subprocess.PIPE, text=True
+            )
 
             try:
                 pods = json.loads(result.stdout).get("items", [])
