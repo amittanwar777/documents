@@ -14,11 +14,6 @@ JSON_FILE = "mapping.json"
 OUTPUT_FILE = "output.json"
 
 # Define environment mappings for datacenters
-DATACENTERS = {
-    "sl": [],
-    "gl": []
-}
-
 SPECIAL_MAPPINGS = {
     "sl": ["ste"],  # ste runs only on sl
     "gl": ["cit"]   # cit runs only on gl
@@ -30,10 +25,14 @@ output_data = {}
 with open(JSON_FILE, "r") as f:
     data = json.load(f)
 
-# Identify general environments that run on both sl & gl
+# Identify environments that run on both sl & gl
 all_envs = set(data["environments"].keys())
-for dc, special_envs in SPECIAL_MAPPINGS.items():
-    DATACENTERS[dc] = special_envs + list(all_envs - set(special_envs))
+common_envs = list(all_envs - {"ste", "cit"})  # Everything except ste & cit
+
+DATACENTERS = {
+    "sl": ["ste"] + common_envs,
+    "gl": ["cit"] + common_envs
+}
 
 for dc, env_list in DATACENTERS.items():
     print(f"Logging into datacenter: {dc}")
@@ -41,7 +40,7 @@ for dc, env_list in DATACENTERS.items():
 
     for env in env_list:
         if env not in data["environments"]:
-            continue  # Skip if environment is not present in JSON
+            continue  # Skip if environment is missing in JSON
 
         env_key = f"{env}-{dc}"
         output_data[env_key] = {"namespaces": []}
@@ -51,7 +50,7 @@ for dc, env_list in DATACENTERS.items():
 
             result = subprocess.run(
                 ["oc", "get", "pods", "-n", ns_value, "--field-selector=status.phase=Running", "-o", "json"],
-                stdout=subprocess.PIPE, text=True
+                stdout=subprocess.PIPE, universal_newlines=True
             )
 
             try:
