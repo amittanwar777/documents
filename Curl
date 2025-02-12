@@ -26,10 +26,11 @@ EOF
 jq -r 'keys[]' "$JSON_FILE" | while read -r env; do
     echo "    <h3>Environment: $env</h3>" >> "$HTML_FILE"
     echo "    <table>" >> "$HTML_FILE"
-    echo "        <tr><th>Namespace</th><th>Pod Name</th><th>Status</th></tr>" >> "$HTML_FILE"
+    echo "        <tr><th>Namespace Key</th><th>Namespace</th><th>Pod Name</th><th>Status</th></tr>" >> "$HTML_FILE"
 
     # Iterate over namespaces
     jq -c ".\"$env\".namespaces[]" "$JSON_FILE" | while read -r ns_entry; do
+        namespace_key=$(echo "$ns_entry" | jq -r '.namespace_key')
         namespace=$(echo "$ns_entry" | jq -r '.namespace')
         
         # Iterate over pods
@@ -37,7 +38,7 @@ jq -r 'keys[]' "$JSON_FILE" | while read -r env; do
             pod_name=$(echo "$pod" | jq -r '.name')
             pod_status=$(echo "$pod" | jq -r '.status')
 
-            echo "        <tr><td>$namespace</td><td>$pod_name</td><td>$pod_status</td></tr>" >> "$HTML_FILE"
+            echo "        <tr><td>$namespace_key</td><td>$namespace</td><td>$pod_name</td><td>$pod_status</td></tr>" >> "$HTML_FILE"
         done
     done
 
