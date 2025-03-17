@@ -1,52 +1,63 @@
-#!/bin/bash
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
 
-JSON_FILE="output.json"
-HTML_FILE="index.html"
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 
-# Start HTML file
-cat <<EOF > "$HTML_FILE"
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pods Overview</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-    </style>
-</head>
-<body>
-    <h2>Pods Overview</h2>
-EOF
+public class SimpleHttpServer {
 
-# Iterate over environments
-jq -r 'keys[]' "$JSON_FILE" | while read -r env; do
-    echo "    <h3>Environment: $env</h3>" >> "$HTML_FILE"
-    echo "    <table>" >> "$HTML_FILE"
-    echo "        <tr><th>Namespace Key</th><th>Namespace</th><th>Pod Name</th><th>Status</th></tr>" >> "$HTML_FILE"
+    public static void main(String[] args) throws IOException {
+        // Create an HTTP server listening on port 8080
+        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
-    # Iterate over namespaces
-    jq -c ".\"$env\".namespaces[]" "$JSON_FILE" | while read -r ns_entry; do
-        namespace_key=$(echo "$ns_entry" | jq -r '.namespace_key')
-        namespace=$(echo "$ns_entry" | jq -r '.namespace')
-        
-        # Iterate over pods
-        echo "$ns_entry" | jq -c '.pods[]' | while read -r pod; do
-            pod_name=$(echo "$pod" | jq -r '.name')
-            pod_status=$(echo "$pod" | jq -r '.status')
+        // Define routes
+        server.createContext("/", new MyHandler());
+        server.createContext("/about", new AboutHandler());
+        server.createContext("/user", new UserHandler());
 
-            echo "        <tr><td>$namespace_key</td><td>$namespace</td><td>$pod_name</td><td>$pod_status</td></tr>" >> "$HTML_FILE"
-        done
-    done
+        // Start the server
+        server.start();
+        System.out.println("Server is running on http://localhost:8080");
+    }
 
-    echo "    </table>" >> "$HTML_FILE"
-done
+    // Handler for the root route ("/")
+    static class MyHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "Hello, this is the home route!";
+            exchange.sendResponseHeaders(200, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
 
-# Close HTML
-cat <<EOF >> "$HTML_FILE"
-</body>
-</html>
-EOF
+    // Handler for the "/about" route
+    static class AboutHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            String response = "This is the about route.";
+            exchange.sendResponseHeaders(200, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
+
+    // Handler for the "/user" route
+    static class UserHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            // Extract the username from the query parameter
+            String query = exchange.getRequestURI().getQuery();
+            String username = query != null ? query.split("=")[1] : "Guest";
+            String response = "Hello, " + username + "!";
+            exchange.sendResponseHeaders(200, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        }
+    }
+}
