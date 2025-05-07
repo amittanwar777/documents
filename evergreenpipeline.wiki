@@ -1,0 +1,103 @@
+h1. RHEL Image Promotion Pipeline (SIT → UAT → Preprod → Prod)
+
+This CI/CD workflow uses Jenkins and Jira to promote container images across environments with approval gates and full traceability.
+
+h2. Pipeline Flowchart
+
+{code}
+[Jenkins: Deploy-to-SIT]
+        |
+        V
+[Jira: Ticket created - "SIT Ready"]
+        |
+     [Manual]
+        V
+[Jira: Status changed to "UAT Ready"]
+        |
+     [Trigger]
+        V
+[Jenkins: Promote-to-UAT]
+        |
+        V
+[Jira: Comment + Status "In UAT"]
+        |
+     [Manual]
+        V
+[Jira: Status → "Preprod Ready"]
+        |
+     [Trigger]
+        V
+[Jenkins: Promote-to-Preprod]
+        |
+        V
+[Jira: Comment + Status "In Preprod"]
+        |
+     [Manual]
+        V
+[Jira: Status → "Prod Ready"]
+        |
+     [Trigger]
+        V
+[Jenkins: Promote-to-Prod]
+        |
+        V
+[Jira: Comment + Status "In Prod"]
+{code}
+
+h2. images.txt (Git-tracked)
+
+{code}
+SIT=image:v1.2.3
+UAT=image:v1.2.2
+PREPROD=image:v1.1.0
+PROD=image:v1.0.9
+{code}
+
+h2. Promotion Workflow Per Environment
+
+* *Preconditions*:
+** Jira ticket exists with status (e.g. *UAT Ready*)
+** Jenkins job performs Jira status check
+
+* *Jenkins Job* (e.g., *Promote-to-UAT*):
+** Reads image version from `images.txt`
+** Validates Jira status with `check_jira_status.sh`
+** Runs `promote_to_env.sh`
+** Updates and commits changes to `images.txt`
+** Tags Git commit (e.g., *promote-v1.2.3-to-UAT*)
+** Updates Jira using `update_jira.sh` and adds comment
+
+h2. Scripts Used
+
+|| Script || Purpose ||
+| promote_to_env.sh | Deploys image to the target environment |
+| create_jira_ticket.sh | Optionally creates a Jira ticket |
+| update_jira.sh | Updates Jira status and comments |
+| check_jira_status.sh | Validates the current Jira status |
+
+h2. Sample Jenkins Shell Script
+
+{code:bash}
+# Validate Jira status
+./check_jira_status.sh "$JIRA_KEY" "UAT Ready" || exit 1
+
+# Promote image
+./promote_to_env.sh "UAT" "$IMAGE_VERSION"
+
+# Update image tracking
+sed -i "s/^UAT=.*/UAT=$IMAGE_VERSION/" images.txt
+git commit -am "Promoted $IMAGE_VERSION to UAT"
+git tag -a "promote-$IMAGE_VERSION-to-UAT" -m "Promotion to UAT"
+git push origin main --tags
+
+# Update Jira
+./update_jira.sh "$JIRA_KEY" "In UAT"
+{code}
+
+h2. Best Practices
+
+* *Version Control*: Tag each promotion for audit purposes
+* *Manual Gates*: Jira statuses act as controlled checkpoints
+* *Traceability*: Git history + Jenkins logs + Jira activity
+* *Rollback Ready*: Restore from older `images.txt` commits
+* *Notifications*: Optional Slack/email hooks per promotion
