@@ -1,94 +1,59 @@
 #!/bin/bash
 
-LOG_DIR="$(dirname "$0")"
-LOG_FILE="$LOG_DIR/app_restart.log"
+# File to store previous replica counts
+STATE_FILE="replica_state.json"
 
-# List of Tomcat instances
-TOMCAT_INSTANCES=(
-    "/apps/tomcat1"
-    "/apps/tomcat2"
-    "/apps/tomcat3"
-)
+# Check if we're restoring or scaling down
+RESTORE_MODE=false
+if [[ -f "$STATE_FILE" ]]; then
+    echo "Replica state file found. Will attempt to restore deployments..."
+    RESTORE_MODE=true
+else
+    echo "No state file found. Will scale down and record replicas..."
+    echo "{}" > "$STATE_FILE"
+fi
 
-# List of JBoss instances
-JBOSS_INSTANCES=(
-    "/apps/jboss1"
-    "/apps/jboss2"
-)
+# Loop through all OpenShift projects
+for ns in $(oc get projects -o jsonpath='{.items[*].metadata.name}'); do
+    echo "Processing namespace: $ns"
 
-log() {
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
-}
-
-start_tomcat() {
-    for TOMCAT_HOME in "${TOMCAT_INSTANCES[@]}"; do
-        log "Starting Tomcat at $TOMCAT_HOME..."
-        /bin/sh "$TOMCAT_HOME/bin/startup.sh" >> "$LOG_FILE" 2>&1 &
-        sleep 5
-        if pgrep -f "$TOMCAT_HOME" > /dev/null; then
-            log "Tomcat at $TOMCAT_HOME started successfully."
-        else
-            log "ERROR: Tomcat at $TOMCAT_HOME failed to start."
+    # Process DeploymentConfigs
+    for dc in $(oc get dc -n "$ns" -o jsonpath='{.items[*].metadata.name}'); do
+        replicas=$(oc get dc "$dc" -n "$ns" -o jsonpath='{.spec.replicas}')
+        if [[ "$RESTORE_MODE" == false && "$replicas" -gt 0 ]]; then
+            echo "Scaling down dc/$dc in $ns from $replicas to 0"
+            jq --arg ns "$ns" --arg name "$dc" --argjson replicas "$replicas" \
+                '.[$ns + "/dc/" + $name] = $replicas' "$STATE_FILE" > tmp.$$.json && mv tmp.$$.json "$STATE_FILE"
+            oc scale dc "$dc" -n "$ns" --replicas=0
+        elif [[ "$RESTORE_MODE" == true ]]; then
+            saved_replicas=$(jq -r --arg key "$ns/dc/$dc" '.[$key] // empty' "$STATE_FILE")
+            if [[ -n "$saved_replicas" ]]; then
+                echo "Restoring dc/$dc in $ns to $saved_replicas replicas"
+                oc scale dc "$dc" -n "$ns" --replicas="$saved_replicas"
+            fi
         fi
     done
-}
 
-stop_tomcat() {
-    for TOMCAT_HOME in "${TOMCAT_INSTANCES[@]}"; do
-        log "Stopping Tomcat at $TOMCAT_HOME..."
-        /bin/sh "$TOMCAT_HOME/bin/shutdown.sh" >> "$LOG_FILE" 2>&1
-        for i in {1..15}; do
-            if ! pgrep -f "$TOMCAT_HOME" > /dev/null; then
-                log "Tomcat at $TOMCAT_HOME stopped successfully."
-                break
+    # Process Deployments
+    for deploy in $(oc get deploy -n "$ns" -o jsonpath='{.items[*].metadata.name}'); do
+        replicas=$(oc get deploy "$deploy" -n "$ns" -o jsonpath='{.spec.replicas}')
+        if [[ "$RESTORE_MODE" == false && "$replicas" -gt 0 ]]; then
+            echo "Scaling down deployment/$deploy in $ns from $replicas to 0"
+            jq --arg ns "$ns" --arg name "$deploy" --argjson replicas "$replicas" \
+                '.[$ns + "/deploy/" + $name] = $replicas' "$STATE_FILE" > tmp.$$.json && mv tmp.$$.json "$STATE_FILE"
+            oc scale deploy "$deploy" -n "$ns" --replicas=0
+        elif [[ "$RESTORE_MODE" == true ]]; then
+            saved_replicas=$(jq -r --arg key "$ns/deploy/$deploy" '.[$key] // empty' "$STATE_FILE")
+            if [[ -n "$saved_replicas" ]]; then
+                echo "Restoring deployment/$deploy in $ns to $saved_replicas replicas"
+                oc scale deploy "$deploy" -n "$ns" --replicas="$saved_replicas"
             fi
-            log "Waiting for Tomcat at $TOMCAT_HOME to stop... ($i)"
-            sleep 1
-        done
-    done
-}
-
-start_jboss() {
-    for JBOSS_HOME in "${JBOSS_INSTANCES[@]}"; do
-        log "Starting JBoss at $JBOSS_HOME..."
-        /bin/sh "$JBOSS_HOME/bin/standalone.sh" >> "$LOG_FILE" 2>&1 &
-        sleep 5
-        if pgrep -f "$JBOSS_HOME" > /dev/null; then
-            log "JBoss at $JBOSS_HOME started successfully."
-        else
-            log "ERROR: JBoss at $JBOSS_HOME failed to start."
         fi
     done
-}
+done
 
-stop_jboss() {
-    for JBOSS_HOME in "${JBOSS_INSTANCES[@]}"; do
-        log "Stopping JBoss at $JBOSS_HOME..."
-        /bin/sh "$JBOSS_HOME/bin/jboss-cli.sh" --connect command=:shutdown >> "$LOG_FILE" 2>&1
-        for i in {1..15}; do
-            if ! pgrep -f "$JBOSS_HOME" > /dev/null; then
-                log "JBoss at $JBOSS_HOME stopped successfully."
-                break
-            fi
-            log "Waiting for JBoss at $JBOSS_HOME to stop... ($i)"
-            sleep 1
-        done
-    done
-}
-
-case "$1" in
-    start)
-        stop_tomcat
-        stop_jboss
-        start_tomcat
-        start_jboss
-        ;;
-    stop)
-        stop_tomcat
-        stop_jboss
-        ;;
-    *)
-        log "Usage: $0 {start|stop}"
-        exit 1
-        ;;
-esac
+# Cleanup the state file after restoring
+if [[ "$RESTORE_MODE" == true ]]; then
+    echo "Restoration complete. Removing state file."
+    rm -f "$STATE_FILE"
+fi
