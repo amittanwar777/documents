@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-features
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-features
+  template:
+    metadata:
+      labels:
+        app: nginx-features
+    spec:
+      volumes:
+        - name: temp-artifacts
+          emptyDir: {}
+
+      initContainers:
+        - name: team-a
+          image: team-a-artifact:latest
+          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-a && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-a"]
+          volumeMounts:
+            - name: temp-artifacts
+              mountPath: /tmp/artifacts
+
+        - name: team-b
+          image: team-b-artifact:latest
+          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-b && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-b"]
+          volumeMounts:
+            - name: temp-artifacts
+              mountPath: /tmp/artifacts
+
+        - name: team-c
+          image: team-c-artifact:latest
+          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-c && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-c"]
+          volumeMounts:
+            - name: temp-artifacts
+              mountPath: /tmp/artifacts
+
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          command:
+            [
+              "sh",
+              "-c",
+              "cp -r /tmp/artifacts/* /usr/share/nginx/html && exec nginx -g 'daemon off;'"
+            ]
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: temp-artifacts
+              mountPath: /tmp/artifacts
