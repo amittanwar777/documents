@@ -1,3 +1,44 @@
+# Deployment Strategy Using Init Container Based Approach
+
+## Overview
+
+This document outlines the CI/CD deployment strategy across different environments (SIT, QA, UAT, PROD) using an **init container-based approach** in OpenShift. This approach decouples artifact updates from runtime image updates, allowing greater flexibility, traceability, and reliability.
+
+---
+
+## Current Process (Legacy)
+
+- Developers commit to the **state repo** (`downloadartifacts.json`) with the artifacts to be deployed via NGINX.
+- The state repo contains different `json` files representing **bounded contexts** (a collection of artifacts grouped logically).
+- Deployment jobs use these definitions to download artifacts and serve them over NGINX.
+
+### Issues / Drawbacks
+
+- ❌ **Not production-grade**: Downloads artifacts at runtime from stash.
+- ❌ **No versioning**: No clear tagging/version of deployed artifacts.
+- ❌ **High risk**: Stash failure can cause pod restart issues and application downtime.
+- ❌ **No single source of truth**: Difficult to trace what version is running in which environment.
+
+---
+
+## Proposed Solution: Init Container Based Approach
+
+### Key Concepts
+
+- **Artifact Image**: A container image (based on RHEL) containing the application binaries/artifacts.
+- **Runtime Base Image**: A minimal or hardened image that actually runs the application (e.g., NGINX).
+- **Init Container**: Unpacks the artifact image into a shared volume (`emptyDir`) before the main container starts.
+
+### Benefits
+
+- ✅ Artifact updates are **separate from runtime updates**.
+- ✅ Supports **tagging and version control**.
+- ✅ **Promotable across environments** (SIT → UAT → PROD).
+- ✅ Resilient to runtime failures (pods don’t rely on stash at runtime).
+- ✅ Better CI/CD, reproducibility, and flexibility.
+
+---
+
 ## Environment-wise Workflow (Detailed Explanation)
 
 ### 🔹 STE (System Test Environment)
@@ -88,3 +129,41 @@ In this environment, **we do not rebuild the artifact image**. We reuse the one 
    Since we never rebuilt the image after UAT, production is now running an image that was thoroughly tested.
 
 > ✅ Key Point: This makes the deployment repeatable, reliable, and fully auditable.
+
+---
+
+## Tagging & Version Management
+
+- A metadata file in **S3** maps image tags to their content (mirrors `downloadartifacts.json` structure).
+- This allows all stakeholders to view:
+  - What each image contains.
+  - Which version is running in each environment.
+
+---
+
+## Future Enhancement
+
+- Build a **simple UI** to visualize:
+  - Image tags and contents.
+  - Environment-wise deployments.
+  - Artifact promotion history.
+
+---
+
+## Technical Recap
+
+### Init-Based Pattern in OpenShift:
+
+- Artifact image is used as an **init container**.
+- It unpacks artifacts into a shared `emptyDir` volume.
+- The main container (e.g., NGINX) uses these files at runtime.
+- Decouples artifact and runtime container concerns.
+
+---
+
+## Notes on STE and CIT Environments
+
+- **No changes** to current flow for STE and CIT environments.
+- They continue using the state repo for faster changes and direct restarts.
+
+---
