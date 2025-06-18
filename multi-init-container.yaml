@@ -1,54 +1,54 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-features
+  name: multi-init-test
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx-features
+      app: multi-init-test
   template:
     metadata:
       labels:
-        app: nginx-features
+        app: multi-init-test
     spec:
       volumes:
-        - name: temp-artifacts
+        - name: shared-artifacts
           emptyDir: {}
 
       initContainers:
-        - name: team-a
-          image: team-a-artifact:latest
-          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-a && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-a"]
+        - name: init-a
+          image: registry.access.redhat.com/ubi8/ubi
+          command: ["/bin/bash", "-c"]
+          args:
+            - mkdir -p /shared/a && echo "feature A" > /shared/a/fileA.txt
           volumeMounts:
-            - name: temp-artifacts
-              mountPath: /tmp/artifacts
+            - name: shared-artifacts
+              mountPath: /shared
 
-        - name: team-b
-          image: team-b-artifact:latest
-          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-b && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-b"]
+        - name: init-b
+          image: registry.access.redhat.com/ubi8/ubi
+          command: ["/bin/bash", "-c"]
+          args:
+            - mkdir -p /shared/b && echo "feature B" > /shared/b/fileB.txt
           volumeMounts:
-            - name: temp-artifacts
-              mountPath: /tmp/artifacts
+            - name: shared-artifacts
+              mountPath: /shared
 
-        - name: team-c
-          image: team-c-artifact:latest
-          command: ["sh", "-c", "mkdir -p /tmp/artifacts/team-c && tar -xf /artifact/feature.tar -C /tmp/artifacts/team-c"]
+        - name: init-c
+          image: registry.access.redhat.com/ubi8/ubi
+          command: ["/bin/bash", "-c"]
+          args:
+            - mkdir -p /shared/c && echo "feature C" > /shared/c/fileC.txt
           volumeMounts:
-            - name: temp-artifacts
-              mountPath: /tmp/artifacts
+            - name: shared-artifacts
+              mountPath: /shared
 
       containers:
-        - name: nginx
-          image: nginx:alpine
-          command:
-            [
-              "sh",
-              "-c",
-              "cp -r /tmp/artifacts/* /usr/share/nginx/html && exec nginx -g 'daemon off;'"
-            ]
-          ports:
-            - containerPort: 80
+        - name: pause-container
+          image: registry.access.redhat.com/ubi8/ubi
+          command: ["/bin/bash", "-c"]
+          args: ["sleep infinity"]
           volumeMounts:
-            - name: temp-artifacts
+            - name: shared-artifacts
               mountPath: /tmp/artifacts
