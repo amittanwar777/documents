@@ -1,63 +1,36 @@
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
+Subject: Analysis of Tomcat Restart Behavior Post-Reboot – Observations and Improvements
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
+Hi [Team/Recipient],
 
-public class SimpleHttpServer {
+As part of our review of the Tomcat restart behavior following the recent machine reboot, here is a summary of our findings, current uncertainties, and the improvements being introduced.
 
-    public static void main(String[] args) throws IOException {
-        // Create an HTTP server listening on port 8080
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+✅ What We Observed
+-------------------
+- The system was rebooted on June 28, which inherently terminated all running processes, including Tomcat and JBoss.
+- Upon reboot, the application restart script was triggered. This script includes both a stop and start phase for Tomcat.
+- During execution, the logs indicated the presence of stale PID files for several Tomcat instances. These were automatically cleared by Tomcat’s own `startup.sh` mechanism.
+- The Tomcat instances subsequently started successfully, as confirmed by both logs and active process checks.
+- JBoss instances were not restarted, as their processes were still active (suggesting no reboot or managed separately).
 
-        // Define routes
-        server.createContext("/", new MyHandler());
-        server.createContext("/about", new AboutHandler());
-        server.createContext("/user", new UserHandler());
+❓ What We're Still Not Fully Sure About
+----------------------------------------
+- Whether the `stop_tomcat` function is adding value during system boot, since no Tomcat processes are typically running at that point.
+- If the stale PID files could cause unintended behavior (e.g. false assumptions, misleading logs) when not handled explicitly.
+- If there's any residual risk in the current logic due to process ownership or timing mismatches.
 
-        // Start the server
-        server.start();
-        System.out.println("Server is running on http://localhost:8080");
-    }
+🛠️ Improvements Being Made
+---------------------------
+- The script is being updated to:
+  - Check for and validate PID files before trying to stop Tomcat.
+  - Safely remove stale PID files only when it's confirmed the associated process is not running.
+  - Use loop-based polling instead of fixed sleep to confirm shutdown/startup success more reliably.
+  - Enhance logging with timestamps and clearer status reporting.
 
-    // Handler for the root route ("/")
-    static class MyHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String response = "Hello, this is the home route!";
-            exchange.sendResponseHeaders(200, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-    }
+These changes aim to make the script more robust, reduce false alarms, and improve post-reboot resilience.
 
-    // Handler for the "/about" route
-    static class AboutHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String response = "This is the about route.";
-            exchange.sendResponseHeaders(200, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-    }
+Please let me know if you'd like a walkthrough of the updated script or have further concerns to address.
 
-    // Handler for the "/user" route
-    static class UserHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            // Extract the username from the query parameter
-            String query = exchange.getRequestURI().getQuery();
-            String username = query != null ? query.split("=")[1] : "Guest";
-            String response = "Hello, " + username + "!";
-            exchange.sendResponseHeaders(200, response.length());
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        }
-    }
-}
+Best regards,  
+[Your Name]  
+[Your Role]  
+[Your Contact Info]
