@@ -1,12 +1,14 @@
-#!/bin/bash
+function _echo() {
+  local msg="$1"
+  local color="\033[1;32m"  # Bright green
+  local reset="\033[0m"
+  local prefix="[INFO]"
 
-while read -r line; do
-  if [[ $line != "#"* ]]; then
-    if [[ $line == *"DNS"* ]]; then
-      entry=$(echo "$line" | awk -F':' '{print $2}')
-    else
-      entry=$(echo "$line" | awk -F':' '{print $2":"$3}' | sed 's/\/32//')
-    fi
-    nc -vz $entry
+  local formatted_msg="${color}${prefix} ${msg}${reset}"
+
+  if [[ -n "$LOG_TARGET" ]]; then
+    echo -e "$formatted_msg" | tee -a "$LOG_TARGET"
+  else
+    echo -e "$formatted_msg"
   fi
-done < file.txt
+}
