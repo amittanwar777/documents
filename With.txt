@@ -1,11 +1,27 @@
-#!/bin/bash
+I’d like to share an update regarding my spouse’s health, as she is currently dealing with Multifocal Metastatic Paraganglioma Syndrome.
 
-# Usage: ./check_url.sh <URL>
-URL=$1
+1. She underwent abdominal surgery for retroperitoneal paraganglioma removal on 28th April. Her recovery is ongoing, as her weight had dropped to a very low level.
 
-# Check if URL is reachable
-if curl --output /dev/null --silent --head --fail "$URL"; then
-  echo "URL is reachable."
-else
-  echo "URL is not reachable."
-fi
+
+2. We are now awaiting the next surgery (neck area), but her condition remains critical due to her current health status.
+
+
+3. We had also visited Tata Memorial Hospital to explore radiation therapy options. However, since her case is not a textbook one, we are currently reviewing our decision based on her evolving health condition.
+
+
+4. The case is under early-stage discussion at AIIMS Delhi, and the ENT team is involved for broader evaluation due to its complexity.
+
+
+
+Attached documents include:
+
+Discharge summary from the abdominal surgery
+
+Clinical physician’s note to AIIMS
+
+ENT department’s workup report from AIIMS
+
+
+Given the situation, my presence is essential to provide continuous physical and emotional support to my spouse during this difficult time.
+
+I kindly request your support in allowing me to work from home long-term from Jaipur. I remain fully committed to fulfilling all my professional responsibilities without any compromise in productivity or availability.
