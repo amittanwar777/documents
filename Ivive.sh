@@ -1,18 +1,10 @@
-#!/bin/bash
+tomcat_dir  = '/opt/tomcat'
+patch_file = '/opt/tomcat/conf/patching.txt'
 
-# List of bounded contexts
-contexts=("fw" "fw-sl" "ca" "ca-sl" "ca-gl")
+if !::Dir.exist?(tomcat_dir) || ::File.exist?(patch_file)
 
-# Loop through each context
-for context in "${contexts[@]}"; do
-    # Check if the context is "fw" or starts with "fw-"
-    if [[ "$context" == "fw" || "$context" == "fw-"* ]]; then
-        folder="valpre"
-    else
-        # Extract the part before the hyphen (if any)
-        folder="${context%%-*}"
-    fi
+  Xxxxxyyyzzzz 
 
-    # Print the result (or perform other actions)
-    echo "Bounded Context: $context --> Folder Name: $folder"
-done
+else
+  Chef::Log.info('Tomcat already installed and no patching.txt found. Skipping.')
+end
